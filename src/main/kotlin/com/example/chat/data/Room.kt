@@ -4,5 +4,7 @@ import java.util.*
 
 data class Room(
     val id: UUID = UUID.randomUUID(),
-    val name: String
+    val name: String,
+    val subscriptionUrl: String
+
 )

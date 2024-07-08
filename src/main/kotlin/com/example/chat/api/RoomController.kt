@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping
 
 @Controller
 @CrossOrigin(origins = ["*"])
-class FrontController(private val roomService: RoomService) {
+class RoomController(private val roomService: RoomService) {
 
     @GetMapping("/")
     fun mainPage(model: Model): String {
