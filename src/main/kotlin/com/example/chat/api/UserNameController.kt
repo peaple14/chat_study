@@ -18,5 +18,4 @@ class UserNameController(
     @CrossOrigin(origins = ["*"])
     fun isUserNameDuplicated(@PathVariable userName: String) =
         userNameService.isUserNameDuplicated(userName)
-
 }
