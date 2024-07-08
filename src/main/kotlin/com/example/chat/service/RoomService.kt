@@ -12,9 +12,9 @@ class RoomService {
         return rooms.values.toList()
     }
 
-    fun createRoom(name: String): UUID {
+    fun createRoom(name: String, subscribe: String): UUID {
         val roomId = UUID.randomUUID()
-        rooms[roomId] = Room(roomId, name)
+        rooms[roomId] = Room(roomId, name, subscribe)
         return roomId
     }
 
