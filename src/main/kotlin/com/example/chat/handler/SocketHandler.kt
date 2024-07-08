@@ -27,7 +27,7 @@ class SocketHandler(
         sessionList.forEach { webSocketSession ->
             if (webSocketSession.isOpen) {
                 webSocketSession.sendMessage(TextMessage(textMessage.payload)) // 받은 메시지를 모든 연결된 세션에 전송합니다.
-
+                println("한말:" + textMessage.payload)
                 // 받은 메시지에서 작성자, 메시지 내용, 시간 정보를 추출합니다.
                 val (author, message, time) = extractMessageInfo(textMessage.payload) ?: return
                 // 메시지 객체를 생성하여 메시지 리스트에 추가합니다.

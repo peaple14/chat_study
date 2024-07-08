@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title><!DOCTYPE html>
+      <html xmlns:th="http://www.thymeleaf.org">
+      <head>
+      <meta charset="UTF-8">
+      <title>WebSocket Chat</title>
+  <script th:src="@{/webjars/sockjs-client/sockjs.min.js}"></script>
+  <script th:src="@{/webjars/stomp-websocket/stomp.min.js}"></script>
+  <script th:src="@{/js/app.js}"></script>
+  <style>
+        #messages {
+            overflow-y: scroll;
+            height: 300px;
+        }
+    </style>
+</head>
+<body onload="connect()">
+<div id="messages"></div>
+<form id="messageForm">
+  <input type="text" id="author" placeholder="Your name" required>
+  <input type="text" id="message" placeholder="Message" required>
+  <button type="submit">Send</button>
+</form>
+
+<script type="text/javascript">
+    document.getElementById('messageForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        var author = document.getElementById('author').value.trim();
+        var message = document.getElementById('message').value.trim();
+        if (author && message) {
+            var messageDto = {
+                author: author,
+                message: message
+            };
+            stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(messageDto));
+            document.getElementById('message').value = '';
+        }
+    });
+
+    var stompClient = null;
+
+    function connect() {
+        var socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function(frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/topic/public', function(response) {
+                var messageDto = JSON.parse(response.body);
+                showMessage(messageDto.author, messageDto.message, messageDto.time);
+            });
+        });
+    }
+
+    function showMessage(author, message, time) {
+        var messageElement = document.createElement('div');
+        messageElement.classList.add('message');
+        messageElement.innerHTML = '<strong>' + author + '</strong>: ' + message + ' (' + time + ')';
+        document.getElementById('messages').appendChild(messageElement);
+        document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+    }
+</script>
+</body>
+</html>
+</title>
+</head>
+<body>
+
+</body>
+</html>
