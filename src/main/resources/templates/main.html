@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Main Page</title>
+</head>
+<body>
+<h1>Welcome to Chat Rooms</h1>
+
+<ul id="roomList"></ul>
+
+<script>
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch('/api/rooms')
+                .then(response => response.json())
+                .then(data => {
+                    const roomList = document.getElementById('roomList');
+                    data.forEach(room => {
+                        const li = document.createElement('li');
+                        const a = document.createElement('a');
+                        a.href = `/chat/${room.id}`;
+                        a.textContent = `Room: ${room.name}`;
+                        li.appendChild(a);
+                        roomList.appendChild(li);
+                    });
+                })
+                .catch(error => console.error('Error fetching rooms:', error));
+        });
+    </script>
+</body>
+</html>
