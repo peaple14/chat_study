@@ -1,6 +1,6 @@
 package com.example.chat.api
 
-import com.example.chat.app.UserNameService
+import com.example.chat.service.UserNameService
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
