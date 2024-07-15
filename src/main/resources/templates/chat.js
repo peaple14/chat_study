@@ -3,7 +3,6 @@ const nickname = localStorage.getItem('nickname') || 'guest';
 const roomName = localStorage.getItem('roomName') || 'defaultRoom';
 
 function connect() {
-/*    ws = new WebSocket(`ws://34.16.226.33:8080/chat`);*/
       ws = new WebSocket(`ws://34.16.226.33:8080/chat`);
     ws.onopen = function() {
         console.log("Connected to WebSocket server");

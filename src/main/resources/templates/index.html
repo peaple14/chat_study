@@ -1,40 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-    <title>짭카오톡</title>
-    <script src="index.js"></script>
+    <meta charset="UTF-8">
+    <title>채팅 방 목록</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <script src="index.js" defer></script> <!-- index.js 파일을 연결하고 비동기적으로 실행 -->
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 20px;
         }
-        .container {
-            text-align: center;
-            margin-top: 50px;
+        .room-list {
+            margin-bottom: 20px;
         }
-        input[type=text] {
-            width: 300px;
-            padding: 10px;
-            margin: 10px 0;
+        .room-item {
+            margin-bottom: 10px;
         }
-        button {
-            padding: 10px 20px;
-            margin: 10px;
+        .create-room-form {
+            margin-bottom: 20px;
         }
-        #roomList {
-            margin-top: 20px;
+        .completed {
+            color: green;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 style="color: yellow;">짭카오톡</h1>
-        <input type="text" id="nickname" placeholder="닉네임">
-        <input type="text" id="roomName" placeholder="방 이름">
-        <button onclick="createOrJoinRoom()">방 만들기 / 참여</button>
-        <div id="roomList">
-            <h3>방 리스트</h3>
-            <ul id="rooms"></ul>
+<div id="app">
+    <h1>채팅 방 목록</h1>
+
+    <!-- 방 목록 -->
+    <div class="room-list">
+        <h2>방 목록</h2>
+        <ul>
+            <!-- 각 방을 순회하며 목록으로 출력 -->
+            <li v-for="room in rooms" :key="room.id" class="room-item">
+                <!-- 방 이름을 클릭하면 해당 방으로 이동 -->
+                <a :href="'/chat/' + room.name">{{ room.name }}</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- 방 생성 폼 -->
+    <div class="create-room-form">
+        <!-- 방 생성 버튼 클릭 시 폼 표시 -->
+        <button @click="showCreateForm = true">방 만들기</button>
+        <div v-if="showCreateForm">
+            <!-- 새로운 방 이름 입력 -->
+            <input type="text" v-model="newRoomName" placeholder="방 이름을 입력하세요">
+            <!-- 방 생성 버튼 -->
+            <button @click="createRoom">만들기</button>
         </div>
     </div>
+
+    <!-- 닉네임 입력 -->
+    <div>
+        <label>닉네임:</label>
+        <input type="text" v-model="nickname" placeholder="닉네임을 입력하세요" required>
+        <!-- 닉네임 보내기 버튼 -->
+        <button @click="sendNickname" :class="{ completed: nicknameSent }">{{ nicknameButtonLabel }}</button>
+        <span v-if="nicknameSent" class="completed">완료</span>
+    </div>
+
+</div>
+
 </body>
 </html>

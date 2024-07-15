@@ -6,19 +6,20 @@ import java.util.*
 
 @Service
 class RoomService {
-    private val rooms: MutableMap<UUID, Room> = mutableMapOf()
+    private val room: MutableMap<UUID, Room> = mutableMapOf()
 
     fun getAllRooms(): List<Room> {
-        return rooms.values.toList()
+        return room.values.toList()
     }
 
-    fun createRoom(name: String): UUID {
+    fun createRoom(name: String): Room {
         val roomId = UUID.randomUUID()
-        rooms[roomId] = Room(roomId, name)
-        return roomId
+        val room = Room(roomId, name)
+        this.room[roomId] = room
+        return room
     }
 
-    fun getRoomById(roomId: UUID): Room? {
-        return rooms[roomId]
+    fun getRoomByName(name: String): Room? {
+        return room.values.find { it.name == name }
     }
 }
