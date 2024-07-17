@@ -43,7 +43,7 @@ class RoomController(private val roomService: RoomService) {
         }
     }
 
-    @GetMapping("/chats/{name}")
+    @GetMapping("/chatss/{name}")//중복 경로값
     fun getChatRoom(@PathVariable name: String): Room {
         return try {
             val room = roomService.getRoomByName(name) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "방을 찾을 수 없습니다")
