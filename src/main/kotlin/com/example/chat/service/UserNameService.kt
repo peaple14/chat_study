@@ -1,21 +1,32 @@
 package com.example.chat.service
 
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.util.concurrent.ConcurrentHashMap
 
 @Service
-class UserNameService(
-    private val userNameList: MutableList<String> = mutableListOf()
-) {
+class UserNameService {
 
-    // 사용자 이름이 이미 리스트에 존재하는지 여부를 확인하고,
-    // 존재하지 않으면 리스트에 추가하는 메서드입니다.
+    private val logger = LoggerFactory.getLogger(UserNameService::class.java)
+    private val userNames = ConcurrentHashMap.newKeySet<String>()
+
     fun isUserNameDuplicated(userName: String): Boolean {
-        return if (userNameList.contains(userName)) {
-            true // 이미 존재하는 사용자 이름이므로 true 반환
-        } else {
-            userNameList.add(userName) // 사용자 이름을 리스트에 추가하고 false 반환
-            false
+        if (userName.isBlank() || userName.length !in 3..20 || !userName.matches(Regex("^[a-zA-Z0-9_]+$"))) {
+            logger.error("유효하지 않은 사용자 이름: $userName")
+            throw IllegalArgumentException("사용자 이름은 3자 이상 20자 이하의 영문자, 숫자, 밑줄(_)만 사용할 수 있습니다.")
         }
+        val isDuplicated = !userNames.add(userName)
+        if (isDuplicated) {
+            logger.info("중복된 사용자 이름: $userName")
+        } else {
+            logger.info("사용자 이름 등록: $userName")
+        }
+        return isDuplicated
+    }
+
+    fun removeUserName(userName: String) {
+        userNames.remove(userName)
+        logger.info("사용자 이름 제거: $userName")
     }
 
 }

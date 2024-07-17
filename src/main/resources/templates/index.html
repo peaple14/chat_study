@@ -1,67 +1,174 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>채팅 방 목록</title>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
-    <script src="index.js" defer></script> <!-- index.js 파일을 연결하고 비동기적으로 실행 -->
+    <title>짭카오톡</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
         }
-        .room-list {
-            margin-bottom: 20px;
+        .container {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
         }
-        .room-item {
-            margin-bottom: 10px;
+        h1 {
+            color: #007bff;
         }
-        .create-room-form {
-            margin-bottom: 20px;
+        input[type=text] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
-        .completed {
-            color: green;
+        input[type=text]:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.5);
+        }
+        #roomList {
+            margin-top: 20px;
+        }
+        #rooms {
+            list-style-type: none;
+            padding: 0;
+        }
+        #rooms li {
+            padding: 5px 0;
+            border-bottom: 1px solid #ccc;
+            cursor: pointer;
+        }
+        #rooms li:hover {
+            background-color: #f0f0f0;
         }
     </style>
 </head>
 <body>
-<div id="app">
-    <h1>채팅 방 목록</h1>
-
-    <!-- 방 목록 -->
-    <div class="room-list">
-        <h2>방 목록</h2>
-        <ul>
-            <!-- 각 방을 순회하며 목록으로 출력 -->
-            <li v-for="room in rooms" :key="room.id" class="room-item">
-                <!-- 방 이름을 클릭하면 해당 방으로 이동 -->
-                <a :href="'/chat/' + room.name">{{ room.name }}</a>
-            </li>
-        </ul>
+<div class="container">
+    <h1>짭카오톡</h1>
+    <input type="text" id="nickname" placeholder="닉네임" required>
+    <input type="text" id="roomName" placeholder="방 이름" required>
+    <button onclick="createOrJoinRoom()">방 만들기 / 참여</button>
+    <div id="roomList">
+        <h3>방 리스트</h3>
+        <ul id="rooms"></ul>
     </div>
-
-    <!-- 방 생성 폼 -->
-    <div class="create-room-form">
-        <!-- 방 생성 버튼 클릭 시 폼 표시 -->
-        <button @click="showCreateForm = true">방 만들기</button>
-        <div v-if="showCreateForm">
-            <!-- 새로운 방 이름 입력 -->
-            <input type="text" v-model="newRoomName" placeholder="방 이름을 입력하세요">
-            <!-- 방 생성 버튼 -->
-            <button @click="createRoom">만들기</button>
-        </div>
-    </div>
-
-    <!-- 닉네임 입력 -->
-    <div>
-        <label>닉네임:</label>
-        <input type="text" v-model="nickname" placeholder="닉네임을 입력하세요" required>
-        <!-- 닉네임 보내기 버튼 -->
-        <button @click="sendNickname" :class="{ completed: nicknameSent }">{{ nicknameButtonLabel }}</button>
-        <span v-if="nicknameSent" class="completed">완료</span>
-    </div>
-
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        fetchRoomList();
+    });
 
+    function fetchRoomList() {
+        fetch(`/room_list/${roomName}/details`)
+            .then(response => response.json())
+            .then(data => {
+                const roomsElement = document.getElementById('rooms');
+                roomsElement.innerHTML = ''; // 기존 리스트 초기화
+                data.forEach(room => {
+                    const li = document.createElement('li');
+                    li.textContent = room.name;
+                    li.onclick = () => joinRoom(room.name);  // 방 클릭 시 입장
+                    roomsElement.appendChild(li);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching room list:', error);
+                alert('방 리스트를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.');
+            });
+    }
+
+    function createOrJoinRoom() {
+        const nickname = document.getElementById('nickname').value.trim();
+        const roomName = document.getElementById('roomName').value.trim();
+
+        if (!nickname || !roomName) {
+            alert('닉네임과 방 이름을 입력해주세요.');
+            return;
+        }
+
+        if (nickname.length < 3 || nickname.length > 20 || roomName.length < 3 || roomName.length > 20) {
+            alert('닉네임과 방 이름은 3자 이상 20자 이하로 입력해주세요.');
+            return;
+        }
+
+        const nicknameRegex = /^[a-zA-Z0-9_]+$/;
+        const roomNameRegex = /^[a-zA-Z0-9_]+$/;
+
+        if (!nicknameRegex.test(nickname) || !roomNameRegex.test(roomName)) {
+            alert('닉네임과 방 이름은 영문자, 숫자, 밑줄(_)만 사용할 수 있습니다.');
+            return;
+        }
+
+        localStorage.setItem('nickname', nickname);
+        localStorage.setItem('roomName', roomName);
+
+        fetch(`/rooms/${encodeURIComponent(roomName)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    alert('이미 존재하는 방 이름입니다. 다른 이름을 사용해주세요.');
+                } else {
+                    window.location.href = `/chats/${encodeURIComponent(roomName)}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error checking room existence:', error);
+                alert('방 이름 확인에 실패했습니다. 잠시 후 다시 시도해주세요.');
+            });
+    }
+
+    function joinRoom(roomName) {
+        const nickname = document.getElementById('nickname').value.trim();
+
+        if (!nickname) {
+            alert('닉네임을 입력해주세요.');
+            return;
+        }
+
+        if (nickname.length < 3 || nickname.length > 20) {
+            alert('닉네임은 3자 이상 20자 이하로 입력해주세요.');
+            return;
+        }
+
+        const nicknameRegex = /^[a-zA-Z0-9_]+$/;
+
+        if (!nicknameRegex.test(nickname)) {
+            alert('닉네임은 영문자, 숫자, 밑줄(_)만 사용할 수 있습니다.');
+            return;
+        }
+
+        localStorage.setItem('nickname', nickname);
+        localStorage.setItem('roomName', roomName);
+
+        window.location.href = `/chats/${encodeURIComponent(roomName)}`;
+    }
+</script>
 </body>
 </html>

@@ -1,8 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>짭카오톡 채팅</title>
-    <script src="/chat.js"></script>
+    <title>채팅방 - <span th:text="${roomName}"></span></title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,62 +10,99 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
+            background-color: #f0f0f0;
         }
         .container {
             display: flex;
             flex: 1;
             overflow: hidden;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin: 20px;
+            padding: 20px;
         }
         .sidebar {
             width: 200px;
             margin-right: 20px;
             padding: 20px;
             background-color: #f4f4f4;
+            border-radius: 10px;
         }
         .chat-container {
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 20px;
+            border-radius: 10px;
         }
         #chatWindow {
             flex: 1;
             overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background-color: #fff;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f1f1f1;
+        }
+        .message.author {
+            background-color: #e1f5fe;
+        }
+        .message.server {
+            background-color: #c8e6c9;
+            font-style: italic;
         }
         .message-input {
             display: flex;
             padding: 10px;
             background-color: #f4f4f4;
             border-top: 1px solid #ccc;
+            border-radius: 10px;
         }
         input[type=text] {
             flex: 1;
             padding: 10px;
             margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
         button {
             padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="sidebar">
-            <h2>현재 방 이름</h2>
-            <div id="currentRoomName"></div>
-            <h3>현재 이 방에 있는 사람들</h3>
-            <ul id="users"></ul>
-        </div>
-        <div class="chat-container">
-            <div id="chatWindow">
-                <ul id="messages"></ul>
-            </div>
-            <div class="message-input">
-                <input type="text" id="messageInput" placeholder="메시지">
-                <button onclick="sendMessage()">입력</button>
-            </div>
-            <div id="status">Disconnected</div>
-        </div>
+<div class="container">
+    <div class="sidebar">
+        <h2>현재 방 이름</h2>
+        <div id="currentRoomName" th:text="${roomName}"></div>
+        <h3>현재 이 방에 있는 사람들</h3>
+        <ul id="users"></ul>
     </div>
+    <div class="chat-container">
+        <div id="chatWindow">
+            <ul id="messages"></ul>
+        </div>
+        <div class="message-input">
+            <input type="text" id="messageInput" placeholder="메시지" autofocus>
+            <button onclick="sendMessage()">입력</button>
+        </div>
+        <div id="status">Disconnected</div>
+    </div>
+</div>
+<script src="../static/chat.js"></script>
 </body>
 </html>

@@ -1,56 +1,70 @@
 package com.example.chat.handler
 
 import com.example.chat.data.Message
-import org.springframework.scheduling.annotation.Scheduled
+import com.example.chat.service.RoomService
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.CloseStatus
 import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.handler.TextWebSocketHandler
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.concurrent.CopyOnWriteArrayList
 
 @Component
-class SocketHandler(
-    private val sessionList: ArrayList<WebSocketSession> = ArrayList(),
-    private val messageList: ArrayList<Message> = ArrayList()
-) : TextWebSocketHandler() {
+class SocketHandler(private val roomService: RoomService) : TextWebSocketHandler() {
 
-    @Scheduled(cron = "0 0 6 * * ?")
-    fun clearSystem() {
-        sessionList.forEach { it.close() }
-        sessionList.clear()
-        messageList.clear()
+    private val rooms: MutableMap<String, CopyOnWriteArrayList<WebSocketSession>> = mutableMapOf()
+    private val logger = LoggerFactory.getLogger(SocketHandler::class.java)
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+
+    override fun afterConnectionEstablished(session: WebSocketSession) {
+        val roomId = getRoomId(session)
+        rooms.computeIfAbsent(roomId) { CopyOnWriteArrayList() }.add(session)
+        logger.info("Connected: ${session.id} to room: $roomId")
+        val joinMessage = Message("Server", "User ${session.id} joined the chat.", dateFormat.format(Date()))
+        roomService.addUserToRoom(getRoomId(session),session.id);
+        broadcastMessage(roomId, joinMessage)
     }
 
-    override fun handleTextMessage(session: WebSocketSession, textMessage: TextMessage) {
-        sessionList.forEach { webSocketSession ->
-            if (webSocketSession.isOpen) {
-                webSocketSession.sendMessage(TextMessage(textMessage.payload))
-                println("Received message: ${textMessage.payload}")
-                val (author, message, time) = extractMessageInfo(textMessage.payload) ?: return
-                messageList.add(Message.write(author, message, time))
+    override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
+        val roomId = getRoomId(session)
+        rooms[roomId]?.remove(session)
+        logger.info("Disconnected: ${session.id} from room: $roomId")
+        val leaveMessage = Message("Server", "User ${session.id} left the chat.", dateFormat.format(Date()))
+        roomService.removeUserFromRoom(getRoomId(session),session.id);
+        broadcastMessage(roomId, leaveMessage)
+    }
+
+    override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
+        try {
+            val msgPayload = message.payload.trim()
+            if (msgPayload.isBlank()) {
+                logger.warn("Received blank message from: ${session.id}")
+                return
+            }
+
+            val msg = Message.fromJson(msgPayload)
+            val roomId = getRoomId(session)
+            broadcastMessage(roomId, msg)
+        } catch (e: Exception) {
+            logger.error("Error handling message: ${message.payload}", e)
+        }
+    }
+
+    private fun broadcastMessage(roomId: String, message: Message) {
+        val jsonMessage = message.toJson()
+        rooms[roomId]?.forEach {
+            try {
+                it.sendMessage(TextMessage(jsonMessage))
+            } catch (e: Exception) {
+                logger.error("Failed to send message to session: ${it.id}", e)
             }
         }
     }
 
-    override fun afterConnectionEstablished(session: WebSocketSession) {
-        sessionList.add(session)
-        println("Connection established: ${session.id}")
-        messageList.forEach { message ->
-            session.sendMessage(TextMessage(message.toJson()))
-        }
-    }
-
-    override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
-        sessionList.remove(session)
-        println("Connection closed: ${session.id}")
-    }
-
-    fun extractMessageInfo(payload: String): Triple<String, String, String>? {
-        val regex = """\{"author":"(.*?)","message":"(.*?)","time":"(.*?)"}""".toRegex()
-        val matchResult = regex.find(payload)
-        return matchResult?.let {
-            val (author, message, time) = it.destructured
-            Triple(author, message, time)
-        }
+    private fun getRoomId(session: WebSocketSession): String {
+        return session.uri?.path?.split("/")?.last() ?: throw IllegalArgumentException("Room ID not found")
     }
 }
