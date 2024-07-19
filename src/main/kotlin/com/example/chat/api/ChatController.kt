@@ -15,6 +15,6 @@ class ChatController {
         }
 
         model.addAttribute("roomName", roomName)
-        return "chat"
+        return "com/example/chat/chat"
     }
 }
