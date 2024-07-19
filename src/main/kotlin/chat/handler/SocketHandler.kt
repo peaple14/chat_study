@@ -22,8 +22,11 @@ class SocketHandler(private val roomService: RoomService) : TextWebSocketHandler
     override fun afterConnectionEstablished(session: WebSocketSession) {
         val roomId = getRoomId(session)
         rooms.computeIfAbsent(roomId) { CopyOnWriteArrayList() }.add(session)
-        val nickname = session.attributes["nickname"] as String
+
+        val nickname = session.uri?.query?.split("=")?.lastOrNull() ?: "Guest" // 닉네임 추출
+
         logger.info("Connected: $nickname to room: $roomId")
+
         val joinMessage = Message("Server", "$nickname joined the chat.", dateFormat.format(Date()))
         roomService.addUserToRoom(roomId, nickname)
         broadcastMessage(roomId, joinMessage)

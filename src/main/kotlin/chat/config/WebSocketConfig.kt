@@ -11,6 +11,6 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 class WebSocketConfig(val socketHandler: SocketHandler) : WebSocketConfigurer {
 
     override fun registerWebSocketHandlers(registry: WebSocketHandlerRegistry) {
-        registry.addHandler(socketHandler, "/chat/{roomId}").setAllowedOrigins("*")
+        registry.addHandler(socketHandler, "/ws/chat/{roomId}").setAllowedOrigins("*")
     }
 }

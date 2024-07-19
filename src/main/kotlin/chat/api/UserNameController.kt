@@ -22,6 +22,7 @@ class UserNameController(
             logger.error("유효하지 않은 사용자 이름: $userName")
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "사용자 이름은 3자 이상 20자 이하의 영문자, 숫자, 밑줄(_)만 사용할 수 있습니다.")
         }
+
         return try {
             userNameService.isUserNameDuplicated(userName)
         } catch (e: Exception) {
